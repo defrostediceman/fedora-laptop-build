@@ -44,7 +44,7 @@ RUN dnf5 install --assumeyes --skip-broken --skip-unavailable \
         gnome-shell-extension-gsconnect \
         gnome-shell-extension-caffeine \
         gnome-shell-extension-fullscreen-to-empty-workspace \
-        gnome-shell-extension-workspace-indicator \
+        gnome-shell-extension-workspace-indicator2 \
         gnome-shell-extension-app-indicator \
         gnome-shell-extension-background-logo && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
@@ -59,7 +59,9 @@ RUN dnf5 install --assumeyes --skip-broken --skip-unavailable \
         flatpak \
         flatpak-builder \
         osbuild \
-        krun-crun \
+        krun \
+        krunvm \
+        crun-krun \
         skopeo && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
