@@ -136,7 +136,6 @@ RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" -
         gnome-color-manager \
         gnome-boxes \
         subscription-manager \
-        abrt* \
         setroubleshoot \
         firefox \
         nano && \
@@ -163,8 +162,7 @@ RUN systemctl set-default graphical.target && \
         podman.socket \
         podman-auto-update.timer \
         fwupd.service \
-        tuned.service \
-        gnome-config.service && \
+        tuned.service && \
     systemctl disable \
         auditd.service && \
     systemctl mask \
