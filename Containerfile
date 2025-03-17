@@ -62,6 +62,8 @@ RUN dnf5 install --assumeyes --skip-broken --skip-unavailable \
         krun \
         krunvm \
         crun-krun \
+        crun-vm \
+        crun \
         skopeo && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
@@ -81,6 +83,8 @@ RUN dnf5 install --assumeyes --skip-broken \
         cockpit-files \
         cockpit-podman \
         cockpit-machines \
+        cockpit-navigator \
+        cockpit-storaged \
         cockpit-selinux \
         cockpit-ostree && \
     dnf5 clean all && rm -rf /var/cache/libdnf5 && \
