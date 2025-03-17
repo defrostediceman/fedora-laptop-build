@@ -18,7 +18,7 @@ RUN dnf5 install --assumeyes --nogpgcheck \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
-RUN dnf5 install --assumeyes --exclude=rootfiles --skip-broken \
+RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broken \
         @core \
         copr \
         dnf5-plugins \
@@ -32,7 +32,6 @@ RUN dnf5 install --assumeyes --exclude=rootfiles --skip-broken \
         wireguard-tools \
         screen \
         arm-image-installer \ 
-        syncthing \
         xclip \
         tmux && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
