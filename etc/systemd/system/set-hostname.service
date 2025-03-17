@@ -1,0 +1,11 @@
+[Unit]
+Description=Set System Hostname
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/hostnamectl set-hostname fedora-bootc
+
+[Install]
+WantedBy=multi-user.target

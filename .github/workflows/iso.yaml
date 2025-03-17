@@ -1,0 +1,68 @@
+
+name: Build bootc iso
+on:
+  workflow_dispatch:
+jobs:
+  pre-cleanup:
+    name: Clean workspace before build
+    runs-on: self-hosted
+    steps:
+      - name: Clean workspace
+        run: |
+          sudo rm -rf ${{ runner.workspace }}/${{ github.event.repository.name }}/*
+          
+  build:
+    #runs-on: ubuntu-latest
+    runs-on: self-hosted
+    name: Build bootc iso and deloy as GitHub Release
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build ISO with bootc Image Builder
+        run: |
+          mkdir -p output
+          sudo podman run \
+            --rm \
+            --privileged \
+            --security-opt label=type:unconfined_t \
+            -v ${{ github.workspace }}/config.toml:/config.toml:ro \
+            -v ${{ github.workspace }}/output:/output \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type anaconda-iso \
+            registry.gitlab.com/fedora/bootc/base-images/fedora-bootc-minimal:rawhide-amd64
+            
+      - name: Rename and Split ISO
+        run: |
+          cp output/bootiso/install.iso bootc-${{ github.sha }}.iso
+          zip -s 1900m bootc-${{ github.sha }}.zip bootc-${{ github.sha }}.iso
+          
+      - name: Upload ISO as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootc-${{ github.sha }}.zip
+          path: bootc-${{ github.sha }}.zip*
+          retention-days: 5
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bootc-${{ github.sha }}.zip*
+          name: "Bootc ISO Build ${{ github.run_number }}"
+          tag_name: v${{ github.run_number }}
+          body: |
+            Bootc iso build from commit ${{ github.sha }}
+            Built on ${{ github.event.repository.updated_at }}
+            
+            To reassemble the ISO:
+            1. Download all zip parts
+            2. On Linux/Mac:
+               ```bash
+               zip -F bootc-${{ github.sha }}.zip --out full-image.zip
+               unzip full-image.zip
+               ```
+            3. On Windows, use 7-Zip or WinZip to open the first part automatically
+          draft: false
+          prerelease: false

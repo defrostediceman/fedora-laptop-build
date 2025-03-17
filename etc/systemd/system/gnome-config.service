@@ -1,0 +1,17 @@
+[Unit]
+Description=Apply GNOME Settings for Primary User
+After=display-manager.service
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+User=1000
+Environment=DISPLAY=:0
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+ExecStartPre=/bin/sleep 30
+ExecStart=/etc/gdm/gnome-config.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target

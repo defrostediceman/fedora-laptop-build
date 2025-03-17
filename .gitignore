@@ -1,0 +1,5 @@
+bootcbuilder
+output/
+config.test.toml
+*.iso
+*.DS_Store

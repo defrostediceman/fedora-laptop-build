@@ -1,0 +1,264 @@
+#!/bin/bash
+
+# Flatpak Package Installer for bootc
+# This script automatically installs Flatpak packages from Flathub
+# Works with bootc environments where user systemd services aren't available
+
+# Color codes for better output readability
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check network connectivity
+check_network() {
+    echo "Checking network connectivity..."
+    if ping -c 1 flathub.org &> /dev/null; then
+        echo -e "${GREEN}Network connectivity confirmed.${NC}"
+        return 0
+    else
+        echo -e "${RED}No network connection to Flathub. Please check your internet connection.${NC}"
+        return 1
+    fi
+}
+
+# Check if Flatpak is installed
+echo "Checking if Flatpak is installed..."
+if ! command_exists flatpak; then
+    echo -e "${RED}Flatpak is not installed. Please install it first.${NC}"
+    echo "On Ubuntu/Debian: sudo apt install flatpak"
+    echo "On Fedora: sudo dnf install flatpak"
+    echo "On Arch: sudo pacman -S flatpak"
+    exit 1
+else
+    echo -e "${GREEN}Flatpak is installed.${NC}"
+    
+    # Check Flatpak version
+    FLATPAK_VERSION=$(flatpak --version | awk '{print $2}')
+    echo "Detected Flatpak version: $FLATPAK_VERSION"
+    
+    # Ensure Flatpak user permissions are correct
+    if [ "$EUID" -ne 0 ]; then
+        # Only check this for non-root users
+        if ! flatpak list &>/dev/null; then
+            echo -e "${YELLOW}Warning: User may not have proper permissions to use Flatpak.${NC}"
+            echo "Consider running this script with sudo or as root."
+        fi
+    fi
+fi
+
+# Main network wait function with exponential backoff
+wait_for_network() {
+    echo "Waiting for network connection..."
+    local count=0
+    local max_attempts=30
+    local wait_time=5
+    
+    while ! check_network && [ $count -lt $max_attempts ]; do
+        echo "Attempt $((count+1))/$max_attempts - Next retry in $wait_time seconds"
+        sleep $wait_time
+        ((count++))
+        
+        # Increase wait time (exponential backoff, capped at 60 seconds)
+        wait_time=$((wait_time * 2))
+        [ $wait_time -gt 60 ] && wait_time=60
+    done
+    
+    if [ $count -eq $max_attempts ]; then
+        echo -e "${RED}Failed to establish network connection after $max_attempts attempts.${NC}"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Check network connectivity and wait if necessary
+if ! check_network; then
+    if ! wait_for_network; then
+        echo "Running in background mode. Will keep trying periodically..."
+        
+        # Create a lock file to prevent multiple instances
+        LOCK_FILE="/tmp/flatpak-installer.lock"
+        if [ -e "$LOCK_FILE" ]; then
+            echo "Another instance is already running in background mode."
+            # Create a status file to indicate successful completion
+echo "Installation completed at $(date)" > "/var/tmp/flatpak-installer-complete"
+
+exit 0
+        fi
+        
+        # Write PID to lock file
+        echo $ > "$LOCK_FILE"
+        
+        # Daemonize and keep trying
+        (
+            while true; do
+                if check_network; then
+                    echo "Network available, continuing installation..."
+                    break
+                fi
+                echo "Still waiting for network, sleeping for 5 minutes..."
+                sleep 300
+            done
+            
+            # Continue with the script (the rest of the code will be executed)
+            # Remove lock file when done
+            rm -f "$LOCK_FILE"
+        ) &
+        
+        echo "Process running in background with PID $(cat $LOCK_FILE). Check logs for progress."
+        exit 0
+    fi
+fi
+
+# Function to verify Flathub connection
+verify_flathub_connection() {
+    echo "Verifying Flathub repository connection..."
+    
+    # Try to update the Flathub remote
+    if flatpak remote-info flathub org.mozilla.firefox &>/dev/null; then
+        echo -e "${GREEN}Successfully connected to Flathub repository.${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}Cannot verify Flathub connection. Repository may be unavailable or misconfigured.${NC}"
+        return 1
+    fi
+}
+
+# Add Flathub remote if not already added
+echo "Checking Flathub remote..."
+if ! flatpak remotes | grep -q "flathub"; then
+    echo "Adding Flathub remote..."
+    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Flathub remote added successfully.${NC}"
+    else
+        echo -e "${RED}Failed to add Flathub remote.${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}Flathub remote is already configured.${NC}"
+fi
+
+# Verify Flathub connection
+if ! verify_flathub_connection; then
+    echo "Attempting to repair Flathub connection..."
+    
+    # Try to remove and re-add the Flathub remote
+    flatpak remote-delete flathub --force &>/dev/null
+    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    
+    # Verify again
+    if ! verify_flathub_connection; then
+        echo -e "${RED}Unable to establish connection to Flathub repository.${NC}"
+        echo "This could be due to network issues or repository problems."
+        echo "The script will keep running in the background and retry later."
+        
+        # Handle this similar to network waiting - go to background mode if needed
+        LOCK_FILE="/tmp/flatpak-installer.lock"
+        if [ -e "$LOCK_FILE" ]; then
+            echo "Another instance is already running in background mode."
+            exit 0
+        fi
+        
+        echo $ > "$LOCK_FILE"
+        
+        (
+            while true; do
+                sleep 300
+                echo "Retrying Flathub connection..."
+                if verify_flathub_connection; then
+                    echo "Connection established, continuing installation..."
+                    break
+                fi
+                echo "Still unable to connect to Flathub, will retry in 5 minutes..."
+            done
+            
+            # Continue with execution
+            # Remove lock file at the end
+            rm -f "$LOCK_FILE"
+        ) &
+        
+        echo "Process running in background with PID $(cat $LOCK_FILE). Check logs for progress."
+        exit 0
+    fi
+fi
+
+# Array of packages to install
+PACKAGES=(
+    "com.usebottles.bottles"
+    "com.github.tchx84.Flatseal"
+    "com.protonvpn.www"
+    "org.signal.Signal"
+    "com.vivaldi.Vivaldi"
+    "com.vscodium.codium"
+    "org.mozilla.firefox"
+    "me.proton.Pass"
+    "org.raspberrypi.rpi-imager"
+    "io.github.nokse22.asciidraw"
+    "org.videolan.VLC"
+    "it.mijorus.gearlever"
+    "net.cozic.joplin_desktop"
+    "org.wireshark.Wireshark"
+    "io.github.pwr_solaar.solaar"
+    "org.localsend.localsend_app"
+    "org.gnome.font-viewer"
+    "org.gnome.Calculator"
+    "org.libreoffice.LibreOffice"
+    "org.fedoraproject.MediaWriter"
+    "com.mattjakeman.ExtensionManager"
+    "org.gimp.GIMP"
+    "org.zealdocs.Zeal"
+    "org.gnome.Papers"
+    "io.github.josephmawa.Bella"
+    "rest.insomnia.Insomnia"
+    "me.kozec.syncthingtk"
+)
+
+# Install each package
+total_packages=${#PACKAGES[@]}
+successful=0
+failed=0
+skipped=0
+
+echo -e "${YELLOW}Starting installation of $total_packages Flatpak packages...${NC}"
+echo "------------------------------------------------------------"
+
+for package in "${PACKAGES[@]}"; do
+    # Check if package is already installed
+    if flatpak list | grep -q "$package"; then
+        echo -e "${YELLOW}Package $package is already installed. Skipping...${NC}"
+        ((skipped++))
+        continue
+    fi
+    
+    echo -e "Installing ${YELLOW}$package${NC}..."
+    if flatpak install flathub "$package" -y --noninteractive; then
+        echo -e "${GREEN}Successfully installed $package${NC}"
+        ((successful++))
+    else
+        echo -e "${RED}Failed to install $package${NC}"
+        ((failed++))
+    fi
+    echo "------------------------------------------------------------"
+done
+
+# Summary
+echo "Installation Summary:"
+echo -e "${GREEN}Successfully installed: $successful${NC}"
+echo -e "${RED}Failed to install: $failed${NC}"
+echo -e "${YELLOW}Already installed (skipped): $skipped${NC}"
+echo "Total packages: $total_packages"
+
+if [ $failed -eq 0 ]; then
+    echo -e "${GREEN}All packages were installed successfully!${NC}"
+else
+    echo -e "${YELLOW}Some packages failed to install. You may want to try installing them manually.${NC}"
+fi
+
+exit 0
