@@ -33,6 +33,8 @@ RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broke
         screen \
         arm-image-installer \ 
         xclip \
+        fprintd \
+        fprintd-pam \
         tmux && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
