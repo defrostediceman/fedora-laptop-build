@@ -28,6 +28,7 @@ RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broke
         vim-enhanced \
         bash-completion \
         bcc-tools \
+        wireshark \
         wireshark-cli \
         wireguard-tools \
         screen \
