@@ -217,6 +217,7 @@ PACKAGES=(
     "org.gnome.Papers"
     "io.github.josephmawa.Bella"
     "rest.insomnia.Insomnia"
+    "org.gnome.Loupe"
     "me.kozec.syncthingtk"
 )
 

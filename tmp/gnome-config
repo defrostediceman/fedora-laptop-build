@@ -361,6 +361,7 @@ apply_settings() {
     FAVORITES=(
         "org.gnome.Nautilus.desktop"
         "org.gnome.Settings.desktop"
+        "me.proton.Pass.desktop"
         "org.signal.Signal.desktop"
         "org.gnome.Ptyxis.desktop"
         "cursor.desktop"

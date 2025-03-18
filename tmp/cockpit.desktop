@@ -4,5 +4,5 @@ Comment=Cockpit Web Console
 Exec=xdg-open https://localhost:9090
 Terminal=false
 Type=Application
-Icon=/usr/share/icons/hicolor/128x128/apps/cockpit.svg
+Icon=/usr/local/bin/cockpit.png
 Categories=System;

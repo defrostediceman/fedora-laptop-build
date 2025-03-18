@@ -32,10 +32,16 @@ RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broke
         wireshark-cli \
         wireguard-tools \
         screen \
+        tcpdump \
+        iperf3 \
+        nmap \
+        socat \
+        hping3 \
         arm-image-installer \ 
         xclip \
         fprintd \
         fprintd-pam \
+        input-remapper \
         tmux && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
@@ -92,7 +98,7 @@ RUN dnf5 install --assumeyes --skip-broken \
         cockpit-ostree && \
     dnf5 clean all && rm -rf /var/cache/libdnf5 && \
     chmod +x /usr/share/applications/cockpit.desktop && \
-    curl -Lo /usr/local/share/icons/cockpit-logo.svg https://cockpit-project.org/images/site/cockpit-logo.svg || { echo "Failed to download cockpit-logo.svg"; exit 0; }
+    curl -Lo /usr/local/bin/cockpit.png https://redhatgov.io/workshops/security_containers/images/cockpit.png || { echo "Failed to download cockpit.png"; exit 0; }
 
 # podman-bootc install
 RUN dnf5 copr enable -y gmaglione/podman-bootc && \
