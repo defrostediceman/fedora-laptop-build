@@ -116,7 +116,8 @@ RUN curl -Lo /usr/local/bin/cursor https://downloader.cursor.sh/linux/appImage/x
 # GPU envycontrol
 RUN dnf5 copr enable -y sunwire/envycontrol && \
     dnf5 install --assumeyes python3-envycontrol && \
-    dnf5 clean all && rm -rf /var/cache/libdnf5
+    dnf5 clean all && rm -rf /var/cache/libdnf5 && \
+    envycontrol -s integrated
 
 # gnome unwanted removal
 RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" --exclude="gdm" --noautoremove \
