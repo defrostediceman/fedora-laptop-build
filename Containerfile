@@ -154,6 +154,10 @@ RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" -
         subscription-manager \
         setroubleshoot \
         firefox \
+        nvidia-gpu-firmware \
+        nvidia-driver \
+        nvidia-container-toolkit \
+        nvidia-persistenced \
         nano && \
     dnf5 autoremove --assumeyes && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
