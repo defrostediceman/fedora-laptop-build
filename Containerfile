@@ -77,11 +77,11 @@ RUN dnf5 install --assumeyes --skip-broken --skip-unavailable \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
 # Nvidia driver
-RUN dnf5 install --assumeyes --skip-broken \
-        nvidia-driver \
-        nvidia-container-toolkit && \
-    rm /var/log/*.log /var/lib/dnf5 -rf && \
-    dnf5 clean all
+#RUN dnf5 install --assumeyes --skip-broken \
+#        nvidia-driver \
+#        nvidia-container-toolkit && \
+#    rm /var/log/*.log /var/lib/dnf5 -rf && \
+#    dnf5 clean all
 
 # cockpit install
 COPY tmp/cockpit.desktop /usr/share/applications/cockpit.desktop
