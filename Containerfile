@@ -42,6 +42,7 @@ RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broke
         fprintd \
         fprintd-pam \
         input-remapper \
+        inxi \
         tmux && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
@@ -111,6 +112,11 @@ COPY tmp/cursor.desktop /usr/share/applications/cursor.desktop
 RUN curl -Lo /usr/local/bin/cursor https://downloader.cursor.sh/linux/appImage/x64 && \
     chmod +x /usr/local/bin/cursor /usr/share/applications/cursor.desktop && \
     curl -Lo /usr/local/bin/cursor.png https://custom.typingmind.com/assets/models/cursor.png || { echo "Failed to download cursor.png"; exit 0; }
+
+# GPU envycontrol
+RUN dnf5 copr enable -y sunwire/envycontrol && \
+    dnf5 install --assumeyes python3-envycontrol && \
+    dnf5 clean all && rm -rf /var/cache/libdnf5
 
 # gnome unwanted removal
 RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" --exclude="gdm" --noautoremove \
