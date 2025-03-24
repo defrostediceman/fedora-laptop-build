@@ -219,6 +219,9 @@ PACKAGES=(
     "rest.insomnia.Insomnia"
     "org.gnome.Loupe"
     "me.kozec.syncthingtk"
+    "io.github.flattool.Ignition"
+    "org.gnome.Podcasts"
+    "io.github.vikdevelop.SaveDesktop"
 )
 
 # Install each package
