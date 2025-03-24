@@ -1,7 +1,7 @@
 ARG PLATFORM=linux/arm64
 ENV PLATFORM=${PLATFORM}
 
-FROM --platform=${PLATFORM} quay.io/fedora/fedora-silverblue:42
+FROM --platform=${PLATFORM} quay.io/fedora/fedora-silverblue:41
 
 COPY etc etc
 
