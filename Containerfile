@@ -156,6 +156,23 @@ RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" -
     dnf5 autoremove --assumeyes && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
+# remmina install
+RUN dnf5 install --assumeyes --skip-broken  \
+        remmina \
+        remmina-gnome-session \
+        remmina-plugins-rdp \
+        remmina-plugins-secret \
+        remmina-plugins-spice \
+        remmina-plugins-vnc && \
+    dnf5 clean all && rm -rf /var/cache/libdnf5 
+
+
+# yubikey install
+RUN dnf5 install --assumeyes --skip-broken \
+        pam-u2f \
+        pamu2fcfg && \
+    dnf5 clean all && rm -rf /var/cache/libdnf5
+
 # gnome config
 COPY tmp/gnome-config /usr/local/bin/gnome-config
 
