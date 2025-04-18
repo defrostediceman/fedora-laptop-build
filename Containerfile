@@ -13,7 +13,6 @@ RUN mkdir -p /data /var/home /root/.cache/dconf /root/.gnupg || true && \
 
 # add third party RPM repo & packages needed to use COPR from DNF5 
 RUN dnf5 install --assumeyes --nogpgcheck \
-        #https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
@@ -38,10 +37,11 @@ RUN dnf5 install --assumeyes --skip-unavailable --exclude=rootfiles --skip-broke
         socat \
         hping3 \
         arm-image-installer \ 
-        xclip \
+        xl-clipboard \
         fprintd \
         fprintd-pam \
         input-remapper \
+        just \
         inxi \
         tmux && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
@@ -78,11 +78,11 @@ RUN dnf5 install --assumeyes --skip-broken --skip-unavailable \
     dnf5 clean all && rm -rf /var/cache/libdnf5
 
 # Nvidia driver
-#RUN dnf5 install --assumeyes --skip-broken \
-#        nvidia-driver \
-#        nvidia-container-toolkit && \
-#    rm /var/log/*.log /var/lib/dnf5 -rf && \
-#    dnf5 clean all
+RUN dnf5 install --assumeyes --skip-broken \
+        nvidia-driver \
+        nvidia-container-toolkit && \
+    rm /var/log/*.log /var/lib/dnf5 -rf && \
+    dnf5 clean all
 
 # cockpit install
 COPY tmp/cockpit.desktop /usr/share/applications/cockpit.desktop
@@ -148,24 +148,9 @@ RUN dnf5 remove --assumeyes --exclude="gnome-shell" --exclude="gnome-desktop*" -
         subscription-manager \
         setroubleshoot \
         firefox \
-        nvidia-gpu-firmware \
-        nvidia-driver \
-        nvidia-container-toolkit \
-        nvidia-persistenced \
         nano && \
     dnf5 autoremove --assumeyes && \
     dnf5 clean all && rm -rf /var/cache/libdnf5
-
-# remmina install
-RUN dnf5 install --assumeyes --skip-broken  \
-        remmina \
-        remmina-gnome-session \
-        remmina-plugins-rdp \
-        remmina-plugins-secret \
-        remmina-plugins-spice \
-        remmina-plugins-vnc && \
-    dnf5 clean all && rm -rf /var/cache/libdnf5 
-
 
 # yubikey install
 RUN dnf5 install --assumeyes --skip-broken \
@@ -194,8 +179,6 @@ RUN systemctl set-default graphical.target && \
         podman-auto-update.timer \
         fwupd.service \
         tuned.service && \
-    systemctl disable \
-        auditd.service && \
     systemctl mask \
         abrtd.service \
         auditd.service
