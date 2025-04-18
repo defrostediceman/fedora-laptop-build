@@ -1,4 +1,4 @@
-name: Build bootc image
+name: Build bootc image main build
 
 permissions:
   contents: read
@@ -9,18 +9,21 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths-ignore:
       - '**/README.md'
       - './github/*'
 
 jobs:
   build:
-    name: Build bootc image
+    name: Build bootc image main build
     runs-on: ubuntu-latest
     
     env:
       IMAGE_NAME: ${{ github.event.repository.name }}
-      REGISTRY: ghcr.io/${{ github.repository_owner }}  
+      REGISTRY: ghcr.io/${{ github.repository_owner }}
+      TAG: main
 
     steps:
       - name: Delete tools folder
@@ -39,7 +42,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }}
+          tags: latest ${{ github.sha }} ${{ env.TAG }}
           containerfiles: |
             ./Containerfile
           build-args: |
