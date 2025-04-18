@@ -1,12 +1,10 @@
-name: Build bootc image
+name: Build development bootc image
 
 permissions:
   contents: read
   packages: write
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
   push:
     branches:
@@ -18,7 +16,7 @@ on:
 
 jobs:
   build:
-    name: Build bootc image
+    name: Build development bootc image
     runs-on: ubuntu-latest
     
     env:
