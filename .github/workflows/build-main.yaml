@@ -1,4 +1,4 @@
-name: Build bootc image main build
+name: Build main bootc image
 
 permissions:
   contents: read
@@ -17,14 +17,13 @@ on:
 
 jobs:
   build:
-    name: Build bootc image main build
+    name: Build main bootc image
     runs-on: ubuntu-latest
     
     env:
       IMAGE_NAME: ${{ github.event.repository.name }}
       REGISTRY: ghcr.io/${{ github.repository_owner }}
-      TAG: main
-
+      BRANCH: ${{ github.ref_name }}
     steps:
       - name: Delete tools folder
         if: runner.os == 'Linux' && startsWith(runner.name, 'Ubuntu')
@@ -42,7 +41,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }} ${{ env.TAG }}
+          tags: ${{ github.sha }} ${{ env.BRANCH }}
           containerfiles: |
             ./Containerfile
           build-args: |
