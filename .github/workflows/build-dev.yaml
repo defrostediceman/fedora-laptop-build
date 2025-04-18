@@ -10,9 +10,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '**'        # Include all branches
-      - '!main'     # Exclude main branch
-    
+      - '**'       
+      - '!main'     
     paths-ignore:
       - '**/README.md'
       - './github/*'
@@ -24,8 +23,9 @@ jobs:
     
     env:
       IMAGE_NAME: ${{ github.event.repository.name }}
-      REGISTRY: ghcr.io/${{ github.repository_owner }}  
-
+      REGISTRY: ghcr.io/${{ github.repository_owner }}
+      TAG: dev
+      BRANCH: ${{ github.ref_name }}
     steps:
       - name: Delete tools folder
         if: runner.os == 'Linux' && startsWith(runner.name, 'Ubuntu')
@@ -43,7 +43,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }}
+          tags: ${{ github.sha }} ${{ env.TAG }} ${{ env.BRANCH }}
           containerfiles: |
             ./Containerfile
           build-args: |
